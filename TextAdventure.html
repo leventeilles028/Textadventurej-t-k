@@ -1,0 +1,293 @@
+﻿<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A Sárkányűző</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0e6d3;
+            color: #333;
+            line-height: 1.8;
+            margin: 0;
+            padding: 20px;
+        }
+
+        #game-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #8b4513;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        .choice-btn {
+            display: block;
+            margin: 15px 0;
+            padding: 12px 25px;
+            background: #5c4033;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+            .choice-btn:hover {
+                background: #8b4513;
+            }
+
+        .continue-btn {
+            background: #2c5e2c;
+            margin-top: 20px;
+        }
+
+            .continue-btn:hover {
+                background: #1e401e;
+            }
+
+        .ending {
+            color: #8b0000;
+            padding: 20px;
+            border: 2px solid #8b0000;
+            margin: 30px 0;
+            text-align: center;
+            background: rgba(139, 0, 0, 0.05);
+        }
+
+        #story {
+            min-height: 200px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div class="header">
+            <h1>A Sárkányűző</h1>
+            <button class="choice-btn" onclick="startGame()">Játék Kezdése</button>
+        </div>
+        <div id="story"></div>
+        <div id="choices"></div>
+    </div>
+
+    <script>
+        let gameState = {};
+        let currentStep = 0;
+        let choicesLocked = false;
+        let gameEnded = false;
+
+        function startGame() {
+            document.querySelector('.header').style.display = 'none';
+            gameState = { weapon: false, armor: false, magic: false, shadowCrystal: false, shadowFear: false };
+            currentStep = 0;
+            choicesLocked = false;
+            gameEnded = false;
+            clearChoices();
+            beginning();
+        }
+
+        function updateDisplay(text) {
+            document.getElementById('story').innerHTML = text;
+        }
+
+        function clearChoices() {
+            document.getElementById('choices').innerHTML = '';
+        }
+
+        function addChoice(text, callback) {
+            if (choicesLocked || gameEnded) return;
+
+            const button = document.createElement('button');
+            button.className = 'choice-btn';
+            button.textContent = text;
+            button.onclick = () => {
+                if (choicesLocked || gameEnded) return;
+                lockChoices();
+                callback();
+                if (!gameEnded) showContinue();
+            };
+            document.getElementById('choices').appendChild(button);
+        }
+
+        function lockChoices() {
+            choicesLocked = true;
+            Array.from(document.getElementsByClassName('choice-btn')).forEach(btn => {
+                btn.disabled = true;
+            });
+        }
+
+        function unlockChoices() {
+            choicesLocked = false;
+        }
+
+        function showContinue() {
+            if (gameEnded || document.querySelector('.continue-btn')) return;
+
+            const continueBtn = document.createElement('button');
+            continueBtn.className = 'choice-btn continue-btn';
+            continueBtn.textContent = 'Tovább';
+            continueBtn.onclick = () => {
+                clearChoices();
+                unlockChoices();
+                currentStep++;
+                loadNextChapter();
+            };
+            document.getElementById('choices').appendChild(continueBtn);
+        }
+
+        function loadNextChapter() {
+            switch (currentStep) {
+                case 1: caveAwakening(); break;
+                case 2: ancientArmory(); break;
+                case 3: dragonLairApproach(); break;
+                case 4: shadowRealm(); break;
+                case 5: finalShowdown(); break;
+            }
+        }
+
+        function showEnding(text) {
+            gameEnded = true;
+            lockChoices();
+            clearChoices();
+            updateDisplay(`<div class="ending">${text}</div>`);
+            const restartBtn = document.createElement('button');
+            restartBtn.className = 'choice-btn';
+            restartBtn.textContent = 'Új játék';
+            restartBtn.onclick = startGame;
+            document.getElementById('choices').appendChild(restartBtn);
+        }
+
+        function beginning() {
+            updateDisplay(`<p>Egy hideg kövek közül ébredsz. A levegőben füst és kénszag terjenget. Egy rejtélyes hang suttogja: "Himmel... egyedül te győzheted le Veldorát..."</p>`);
+
+            addChoice("1. Körülnézek a barlangban", () => {
+                updateDisplay(`<p>Megtapogatod a nedves falakat. A távolban halvány fényt látsz.</p>`);
+                showContinue();
+            });
+
+            addChoice("2. Kiabálok a sötétbe", () => {
+                updateDisplay(`<p>A hang visszhangzik: "Siess... a sárkány ébredezik..."</p>`);
+                showContinue();
+            });
+        }
+
+        function caveAwakening() {
+            updateDisplay(`<p>Egy öregember bukkan elő a sötétből. Kezében ereklyéket tart:</p><p>"Válassz okosan - csak egy segítséget adhatok!"</p>`);
+
+            addChoice("1. Elfogadom a régi kardot", () => {
+                gameState.weapon = true;
+                updateDisplay(`<p>A penge halványan világít a sötétben.</p>`);
+                showContinue();
+            });
+
+            addChoice("2. Kérem a mágikus amulettet", () => {
+                gameState.magic = true;
+                updateDisplay(`<p>Az amulett melege áramlik testedben.</p>`);
+                showContinue();
+            });
+        }
+
+        function ancientArmory() {
+            updateDisplay(`<p>A barlang mélyén ősi fegyverek hevernek. Egy felirat figyelmeztet:</p><p>"Csak az nyerhet, aki ismeri gyengeségét"</p>`);
+
+            addChoice("1. Fegyverzetet keresek", () => {
+                if (gameState.weapon) {
+                    showEnding(`VÉGE: Túlzott önbizalom<br><br>A fegyverek eltörnek<br>"A vakmerőség veszedelmes"`);
+                } else {
+                    gameState.armor = true;
+                    updateDisplay(`<p>Találsz egy rozsdás de szilárd páncélt.</p>`);
+                    showContinue();
+                }
+            });
+
+            addChoice("2. Tanulmányozom a jeleket", () => {
+                if (gameState.magic) {
+                    updateDisplay(`<p>Az amulett segít megfejteni az ősi írásokat.</p>`);
+                    showContinue();
+                } else {
+                    showEnding(`VÉGE: Rejtélyek fogságában<br><br>Eltévedsz az alagutakban<br>"A tudás nélkül nincs menekvés"`);
+                }
+            });
+        }
+
+        function dragonLairApproach() {
+            updateDisplay(`<p>A barlang végén hatalmas láva tó meredek szirtek között. Veldora árnyéka köröz a mennyezeten.</p><p>Mélyről dübörgő hang hallszik: "MERSZ KÖZELEDNI, HALANDÓ?"</p>`);
+
+            addChoice("1. A lávatóba ugrok", () => {
+                showEnding(`VÉGE: Láva fürdő<br><br>Tested másodperc alatt elporlad<br>"A heves indulat tűzbe visz"`);
+            });
+
+            addChoice("2. Megpróbálok mászni", () => {
+                if (gameState.armor) {
+                    showEnding(`VÉGE: Sziklaáldozat<br><br>A páncél ellenségeddé válik<br>"A terhek jól választandók"`);
+                } else {
+                    updateDisplay(`<p>Ügyesen megkapaszkodsz a köveken!</p>`);
+                    showContinue();
+                }
+            });
+
+            addChoice("3. Varázstárgyat használok", () => {
+                if (gameState.magic) {
+                    updateDisplay(`<p>Az amulett lángokká változtatja a láva felületét!</p>`);
+                    gameState.lavaBridge = true;
+                    showContinue();
+                } else {
+                    showEnding(`VÉGE: Varázslat nélkül<br><br>A mágia nélkül tehetetlen vagy<br>"A képzetek veszedelmesek"`);
+                }
+            });
+        }
+
+        function shadowRealm() {
+            updateDisplay(`<p>Egy harmatos réten találod magad. Árnyéklények táncolnak körülötted.</p>`);
+
+            addChoice("1. A kardomat emelem", () => {
+                if (gameState.weapon) {
+                    updateDisplay(`<p>Az árnyak nevetve oszlanak szét!</p>`);
+                    gameState.shadowFear = true;
+                    showContinue();
+                } else {
+                    showEnding(`VÉGE: Fegyver nélkül<br><br>Az árnyak elnyelnek<br>"A vakmerőség vakít"`);
+                }
+            });
+
+            addChoice("2. Békét kötök", () => {
+                updateDisplay(`<p>Az árnyak egy kristályt helyeznek kezedbe!</p>`);
+                gameState.shadowCrystal = true;
+                showContinue();
+            });
+
+            addChoice("3. Menekülök", () => {
+                showEnding(`VÉGE: Örök menekülés<br><br>Soha többé nem látsz napfényt<br>"A félelem csapdája"`);
+            });
+        }
+
+        function finalShowdown() {
+            updateDisplay(`<p>Veldora hatalmas teste kitölti a barlangot! Szemei égő szénakazalként izzanak.</p>`);
+
+            if (gameState.shadowCrystal) {
+                addChoice("1. Felhasználom az árnyékkristályt", () => {
+                    showEnding(`VÉGE: Béke hőse<br><br>Megtanultad az együttélést<br>"A béke legyőzi a harcot"`);
+                });
+            }
+
+            addChoice("3. Feláldozom magam", () => {
+                if (gameState.magic && gameState.weapon) {
+                    showEnding(`VÉGE: Végső áldozat<br><br>Tested elporlad de a világ megmenekül<br>"A nagy tett örökké él"`);
+                } else {
+                    showEnding(`VÉGE: Hiábavaló áldozat<br><br>Halálod értelmetlen marad<br>"A vak áldozat nem hősies"`);
+                }
+            });
+        }
+    </script>
+</body>
+</html>
